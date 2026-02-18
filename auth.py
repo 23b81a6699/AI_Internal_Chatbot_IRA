@@ -4,7 +4,7 @@ from database import c, conn
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-def signup_user(full_name, email, phone, password):
+def signup(full_name, email, phone, password):
     try:
         c.execute(
             "INSERT INTO users VALUES (?, ?, ?, ?)",
@@ -15,9 +15,9 @@ def signup_user(full_name, email, phone, password):
     except:
         return False
 
-def login_user(email, password):
+def login(email, password):
     c.execute(
         "SELECT * FROM users WHERE email=? AND password=?",
         (email, hash_password(password))
     )
-    return c.fetchone() is not None
+    return c.fetchone()
