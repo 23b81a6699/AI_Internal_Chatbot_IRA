@@ -1,14 +1,26 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
-def get_answer(user_query, website_text):
-    sentences = website_text.split(".")
-    sentences = [s.strip() for s in sentences if s.strip()]
+def get_answer(query, text):
 
-    vectorizer = TfidfVectorizer()
-    vectors = vectorizer.fit_transform(sentences + [user_query])
+    sentences = [s.strip() for s in text.split(".") if len(s.strip()) > 40]
 
-    similarity = cosine_similarity(vectors[-1], vectors[:-1])
-    best_match = similarity.argmax()
+    if not sentences:
+        return "No sufficient information found."
 
-    return sentences[best_match] if sentences else "No relevant information found."
+    vectorizer = TfidfVectorizer(stop_words="english")
+    vectors = vectorizer.fit_transform(sentences + [query])
+
+    similarity = cosine_similarity(vectors[-1], vectors[:-1]).flatten()
+
+    top_indices = similarity.argsort()[-3:][::-1]
+
+    best_score = similarity[top_indices[0]]
+
+    if best_score < 0.07:
+        return "I could not find a clear answer on the website."
+
+    answer = ". ".join([sentences[i] for i in top_indices])
+
+    return answer
